@@ -1,0 +1,11 @@
+streamlit
+torch
+transformers
+spacy
+matplotlib
+wordcloud
+nltk
+langdetect
+pandas
+sentencepiece
+protobuf

@@ -7,19 +7,18 @@ from wordcloud import WordCloud
 import nltk
 from nltk.tokenize import word_tokenize
 from nltk import pos_tag
-from langdetect import detect_langs
 import pandas as pd
 import os
 import shutil
 from transformers.utils.hub import TRANSFORMERS_CACHE
 
-# Use /tmp for caching instead of ~/.cache/huggingface
-cache_dir = "/tmp/huggingface"
-
-# Ensure cache directory exists but DO NOT delete it
-os.makedirs(cache_dir, exist_ok=True)
-
+# Securely load Hugging Face token from Streamlit secrets
 HUGGINGFACE_TOKEN = st.secrets.get("HUGGINGFACE_TOKEN", "")
+
+# Clear Hugging Face cache to prevent corrupted downloads
+cache_dir = TRANSFORMERS_CACHE if TRANSFORMERS_CACHE else os.path.expanduser("~/.cache/huggingface")
+shutil.rmtree(cache_dir, ignore_errors=True)
+os.makedirs(cache_dir, exist_ok=True)
 
 # Download required NLTK resources with caching
 @st.cache_resource
@@ -59,19 +58,6 @@ except Exception as e:
 
 nlp = spacy.load("en_core_web_sm")
 
-# Initialize pipelines
-try:
-    summarizer = pipeline("summarization", model="facebook/bart-large-cnn", token=HUGGINGFACE_TOKEN, force_download=True)
-    st.write("✅ Summarization model loaded successfully!")
-except Exception as e:
-    st.error(f"🚨 Error loading summarization model: {str(e)}")
-
-try:
-    emotion_classifier = pipeline('text-classification', model='bhadresh-savani/distilbert-base-uncased-emotion', token=HUGGINGFACE_TOKEN, force_download=True)
-    st.write("✅ Emotion detection model loaded successfully!")
-except Exception as e:
-    st.error(f"🚨 Error loading emotion detection model: {str(e)}")
-
 # Streamlit UI
 st.title("📝 Interactive NLP Web App")
 st.sidebar.title("🔧 Settings")
@@ -88,8 +74,7 @@ if dark_mode:
     )
 
 option = st.sidebar.selectbox("📌 Choose an NLP Task", 
-    ["Sentiment Analysis", "Question Answering", "Summarization", "Word Cloud", "NER", "POS Tagging", 
-     "Language Detection", "Emotion Detection"])
+    ["Sentiment Analysis", "Question Answering", "Word Cloud", "NER", "POS Tagging"])
 
 # NLP Functionalities
 if option == "Sentiment Analysis":
@@ -121,3 +106,38 @@ elif option == "Question Answering":
             st.info(f"**Answer:** {answer}")
         else:
             st.warning("Please enter both a context and a question.")
+
+elif option == "Word Cloud":
+    text = st.text_area("🌥️ Enter text for word cloud")
+    if st.button("Generate Word Cloud"):
+        if text.strip():
+            text = text[:5000]  # Prevent huge inputs from crashing the app
+            wordcloud = WordCloud(width=800, height=400, max_words=100, background_color=color_scheme).generate(text)
+            fig, ax = plt.subplots()
+            ax.imshow(wordcloud, interpolation='bilinear')
+            ax.axis("off")
+            st.pyplot(fig)
+        else:
+            st.warning("Please enter some text to generate a word cloud.")
+
+elif option == "NER":
+    text = st.text_area("📌 Enter text for Named Entity Recognition")
+    if st.button("Analyze NER"):
+        if text.strip():
+            doc = nlp(text)
+            entities = [(ent.text, ent.label_) for ent in doc.ents]
+            df = pd.DataFrame(entities, columns=["Entity", "Label"])
+            st.dataframe(df)
+        else:
+            st.warning("Please enter some text for analysis.")
+
+elif option == "POS Tagging":
+    text = st.text_area("🔤 Enter text for POS Tagging")
+    if st.button("Tag POS"):
+        if text.strip():
+            tokens = word_tokenize(text)
+            pos_tags = pos_tag(tokens)
+            df = pd.DataFrame(pos_tags, columns=["Word", "POS Tag"])
+            st.dataframe(df)
+        else:
+            st.warning("Please enter some text for POS tagging.")

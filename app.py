@@ -10,12 +10,16 @@ from nltk import pos_tag
 from langdetect import detect_langs
 import pandas as pd
 
-# Hugging Face token (replace with your actual token)
-HUGGINGFACE_TOKEN = "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"
+# Securely load Hugging Face token from Streamlit secrets
+HUGGINGFACE_TOKEN = st.secrets["HUGGINGFACE_TOKEN"]
 
-# Download required NLTK resources
-nltk.download("punkt")
-nltk.download('averaged_perceptron_tagger')
+# Download required NLTK resources with caching
+@st.cache_resource
+def download_nltk_resources():
+    nltk.download("punkt")
+    nltk.download('averaged_perceptron_tagger')
+
+download_nltk_resources()
 
 # Caching models for performance
 @st.cache_resource(show_spinner=True)

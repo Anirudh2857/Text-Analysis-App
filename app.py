@@ -19,6 +19,8 @@ cache_dir = "/tmp/huggingface"
 # Ensure cache directory exists but DO NOT delete it
 os.makedirs(cache_dir, exist_ok=True)
 
+HUGGINGFACE_TOKEN = st.secrets.get("HUGGINGFACE_TOKEN", "")
+
 # Download required NLTK resources with caching
 @st.cache_resource
 def download_nltk_resources():

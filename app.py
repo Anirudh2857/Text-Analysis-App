@@ -9,12 +9,15 @@ from nltk.tokenize import word_tokenize
 from nltk import pos_tag
 from langdetect import detect_langs
 import pandas as pd
-from transformers.utils.hub import cached_file
+from transformers.utils.hub import TRANSFORMERS_CACHE
 import shutil
+import os
 
-# Force re-download if models fail
-cache_dir = cached_file("facebook/bart-large-cnn", "config.json").parent
+# Force clean Hugging Face cache
+cache_dir = TRANSFORMERS_CACHE if TRANSFORMERS_CACHE else os.path.expanduser("~/.cache/huggingface/transformers")
 shutil.rmtree(cache_dir, ignore_errors=True)
+os.makedirs(cache_dir, exist_ok=True)  # Ensure it exists before loading models
+
 
 # Securely load Hugging Face token from Streamlit secrets
 HUGGINGFACE_TOKEN = st.secrets["HUGGINGFACE_TOKEN"]

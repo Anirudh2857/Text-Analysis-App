@@ -13,12 +13,10 @@ import os
 import shutil
 from transformers.utils.hub import TRANSFORMERS_CACHE
 
-# Securely load Hugging Face token from Streamlit secrets
-HUGGINGFACE_TOKEN = st.secrets.get("HUGGINGFACE_TOKEN", "")
+# Use /tmp for caching instead of ~/.cache/huggingface
+cache_dir = "/tmp/huggingface"
 
-# Clear Hugging Face cache to prevent corrupted downloads
-cache_dir = TRANSFORMERS_CACHE if TRANSFORMERS_CACHE else os.path.expanduser("~/.cache/huggingface")
-shutil.rmtree(cache_dir, ignore_errors=True)
+# Ensure cache directory exists but DO NOT delete it
 os.makedirs(cache_dir, exist_ok=True)
 
 # Download required NLTK resources with caching

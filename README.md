@@ -9,6 +9,9 @@ This is an interactive NLP web application built using Streamlit, Hugging Face t
 - **Part-of-Speech (POS) Tagging**: Analyzes words and their corresponding POS tags.
 - **Word Cloud Generation**: Creates a visual representation of word frequency in a text.
 
+## Deployment
+You can access the deployed application at: [https://text-analysis-app-fletzht2ccefy97zus729q.streamlit.app](#) 
+
 ## Installation
 
 To run the application locally, follow these steps:
@@ -70,5 +73,5 @@ This application uses the following key libraries:
 This project is licensed under the MIT License.
 
 ## Author
-Developed by **Your Name**.
+Developed by **Anirudh Jeevan**.
 

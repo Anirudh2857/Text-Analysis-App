@@ -7,25 +7,35 @@ from wordcloud import WordCloud
 import nltk
 from nltk.tokenize import word_tokenize
 from nltk import pos_tag
-from textblob import TextBlob
 from langdetect import detect_langs
 import pandas as pd
-import seaborn as sns
 
-# Load trained sentiment model
-model_name = "./sentiment_model"
-tokenizer = AutoTokenizer.from_pretrained(model_name)
-model = AutoModelForSequenceClassification.from_pretrained(model_name)
+# Hugging Face token (replace with your actual token)
+HUGGINGFACE_TOKEN = "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"
 
-# Load trained QA model
-qa_model_name = "./qa_model"
-qa_tokenizer = AutoTokenizer.from_pretrained(qa_model_name)
-qa_model = AutoModelForQuestionAnswering.from_pretrained(qa_model_name)
-
-# Load NLP models
-nlp = spacy.load("en_core_web_sm")
+# Download required NLTK resources
 nltk.download("punkt")
 nltk.download('averaged_perceptron_tagger')
+
+# Caching models for performance
+@st.cache_resource(show_spinner=True)
+def load_sentiment_model():
+    model_name = "Anirudh2857/sentiment_model"
+    tokenizer = AutoTokenizer.from_pretrained(model_name, token=HUGGINGFACE_TOKEN)
+    model = AutoModelForSequenceClassification.from_pretrained(model_name, token=HUGGINGFACE_TOKEN)
+    return tokenizer, model
+
+@st.cache_resource(show_spinner=True)
+def load_qa_model():
+    qa_model_name = "Anirudh2857/qa_model"
+    qa_tokenizer = AutoTokenizer.from_pretrained(qa_model_name, token=HUGGINGFACE_TOKEN)
+    qa_model = AutoModelForQuestionAnswering.from_pretrained(qa_model_name, token=HUGGINGFACE_TOKEN)
+    return qa_tokenizer, qa_model
+
+# Load models dynamically
+tokenizer, model = load_sentiment_model()
+qa_tokenizer, qa_model = load_qa_model()
+nlp = spacy.load("en_core_web_sm")
 
 # Initialize pipelines
 summarizer = pipeline("summarization", model="facebook/bart-large-cnn")
@@ -50,7 +60,7 @@ option = st.sidebar.selectbox("📌 Choose an NLP Task",
     ["Sentiment Analysis", "Question Answering", "Summarization", "Word Cloud", "NER", "POS Tagging", 
      "Language Detection", "Emotion Detection"])
 
-# --- NLP Functionalities ---
+# NLP Functionalities
 if option == "Sentiment Analysis":
     user_input = st.text_area("✍️ Enter text for sentiment analysis")
     if st.button("Analyze Sentiment"):
@@ -61,7 +71,6 @@ if option == "Sentiment Analysis":
             labels = ["Negative", "Positive"]
             sentiment = labels[torch.argmax(scores)]
             confidence = scores.max().item()
-            
             st.success(f"**Sentiment:** {sentiment} (Confidence: {confidence:.2f})")
         else:
             st.warning("Please enter some text to analyze.")
@@ -75,7 +84,9 @@ elif option == "Question Answering":
             outputs = qa_model(**inputs)
             answer_start = torch.argmax(outputs.start_logits)
             answer_end = torch.argmax(outputs.end_logits) + 1
-            answer = qa_tokenizer.convert_tokens_to_string(qa_tokenizer.convert_ids_to_tokens(inputs['input_ids'][0][answer_start:answer_end]))
+            answer = qa_tokenizer.convert_tokens_to_string(
+                qa_tokenizer.convert_ids_to_tokens(inputs['input_ids'][0][answer_start:answer_end])
+            )
             st.info(f"**Answer:** {answer}")
         else:
             st.warning("Please enter both a context and a question.")
@@ -122,22 +133,3 @@ elif option == "POS Tagging":
             st.dataframe(df)
         else:
             st.warning("Please enter some text for POS tagging.")
-
-elif option == "Language Detection":
-    text = st.text_area("🌍 Enter text to detect language")
-    if st.button("Detect Language"):
-        if text.strip():
-            langs = detect_langs(text)
-            st.success(f"**Detected Languages:** {langs}")
-        else:
-            st.warning("Please enter some text to detect language.")
-
-elif option == "Emotion Detection":
-    text = st.text_area("😊 Enter text for emotion detection")
-    if st.button("Detect Emotion"):
-        if text.strip():
-            emotions = emotion_classifier(text)
-            df = pd.DataFrame(emotions)
-            st.dataframe(df)
-        else:
-            st.warning("Please enter some text to analyze emotions.")

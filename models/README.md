@@ -98,4 +98,4 @@ qa_model = AutoModelForQuestionAnswering.from_pretrained("./qa_model")
 This project is licensed under the MIT License.
 
 ## Author
-Developed by **Your Name**.
+Developed by **Anirudh Jeevan**.

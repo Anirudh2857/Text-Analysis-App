@@ -18,8 +18,7 @@ This repository contains the implementation of a **Sentiment Analysis Model** an
 
 ### 1. Clone the repository
 ```bash
-git clone <repository-url>
-cd <repository-folder>
+git clone https://github.com/Anirudh2857/Text-Analysis-App/tree/main/models
 ```
 
 ### 2. Create a virtual environment (optional but recommended)

@@ -1,5 +1,5 @@
 streamlit
-torch==2.2.1
+torch>=2.2.2
 transformers==4.38.2
 spacy==3.7.4
 https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.7.0/en_core_web_sm-3.7.0-py3-none-any.whl
